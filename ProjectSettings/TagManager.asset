@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Lose
   - NoLose
+  - Ground
   layers:
   - Default
   - TransparentFX
