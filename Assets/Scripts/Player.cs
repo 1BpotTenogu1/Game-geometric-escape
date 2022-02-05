@@ -2,27 +2,23 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
+    
+    public float jumpForce;
+    
+    private CharacterController _controller;
+    private Vector3 _direction;
     public float MoveSpeed = 4;
     public float LeftRightSpeed = 5;
+    bool alive = true;
 
-    private float _jumpPower = 10f;
-    private Rigidbody _rb;
-    private readonly Vector3 _jumpDirection = Vector3.up;
-
-    public bool isGrounded { get; private set; }
-
-    private void Start()
+    private void Update()
     {
-        this._rb = this.GetComponent<Rigidbody>();
-    }
-
-    void Update()
-    {
-        transform.Translate(Vector3.forward * Time.deltaTime * MoveSpeed, Space.World); 
-        if (Input.GetKey(KeyCode.A)  || Input.GetKey(KeyCode.LeftArrow))
+        transform.Translate(Vector3.forward * Time.deltaTime * MoveSpeed, Space.World);
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow))
         {
             if (this.gameObject.transform.position.x > LevelBounddary.LeftSide)
             {
@@ -36,29 +32,47 @@ public class Player : MonoBehaviour
                 transform.Translate(Vector3.left * Time.deltaTime * LeftRightSpeed * -1);
             }
         }
+        if (transform.position.y < -1)
+        {
+            Die();
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
-            this.Jump();
+        {
+         Jump();
+         }
+        
+    }
+    
+    private void FixedUpdate()
+    {
+        if (!alive) return;
+        _controller.Move(_direction * Time.fixedDeltaTime);
         
     }
     //попытка сделать прыжок 
     private void Jump()
     {
-        if (this.isGrounded)
-            this._rb.AddForce(this._jumpDirection * _jumpPower, ForceMode.Impulse);
+        _direction.y = jumpForce;
     }
 
-    private void OnCollisionEnter(Collision other)
+    public void Die()
     {
-        var ground = other.gameObject.GetComponentInParent<Ground>();
-        if (ground)
-            this.isGrounded = true;
+        alive = false;
+        SceneManager.LoadScene(2);
+        Debug.Log("Restart!");
+    }
+    
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.transform.tag == "Lose")
+        {
+            Block.gameOver = true;
+            SceneManager.LoadScene(2);
+            Debug.Log("Restart!");
+        }
     }
 
-    private void OnCollisionExit(Collision other)
-    {
-        var ground = other.gameObject.GetComponentInParent<Ground>();
-        if (ground)
-            this.isGrounded = false;
-    }
+
 }
